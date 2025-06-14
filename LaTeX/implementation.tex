@@ -1,0 +1,269 @@
+\documentclass[main.tex]{subfiles}
+\begin{document}
+
+\section{Implementation}
+
+\subsection{Generating Feynman Diagrams}
+
+The first step is to encode the Feynman diagrams in a way that Mathematica can manipulate them \cref{fig:econding}.
+We represent each diagram as a list of pairs, for instance, the third diagram in \cref{fig:econding} can be represented as:
+
+\begin{equation*}
+    \{\{1,-1\},\{2,-1\},\{3,-2\},\{4,-2\},\{5,-2\},\{-1,-2\}\};
+\end{equation*}
+
+with the convention that the external legs are represented by positive integers and the internal vertices by negative integers, the 
+pairs representing the connections between the vertices always ordered in decreasing order.
+
+\begin{figure}[ht]
+    \centering
+    \begin{subfigure}[b]{0.33\textwidth}
+        \centering
+        \begin{tikzpicture}
+            \begin{feynman}
+                \vertex [label={[xshift=-3mm]left:{-1}}](a);
+                \vertex [above left =of a] (i1) {$1$};
+                \vertex [below left =of a] (i2) {$2$};
+                \vertex [right =of a] (f1) {$3$};
+
+                \diagram* {
+                    (i1) -- [gluon] (a) -- [gluon] (i2);
+                    (a) -- [gluon] (f1);
+                };
+            \end{feynman}
+        \end{tikzpicture}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.33\textwidth}
+        \centering
+        \begin{tikzpicture}
+            \begin{feynman}
+                \vertex [label={[xshift=-3mm]left:{-1}}](a);
+                \vertex [above left =of a] (i1) {$1$};
+                \vertex [below left =of a] (i2) {$2$};
+                \vertex [label={[xshift=+3mm]right:{-2}}](b) [right=of a];
+                \vertex [above right =of b] (f1) {$3$};
+                \vertex [below right =of b] (f2) {$4$};
+
+                \diagram* {
+                    (i1) -- [gluon] (a) -- [gluon] (i2);
+                    (a) -- [gluon] (b);
+                    (f2) -- [gluon] (b)--[gluon] (f1);
+                };
+            \end{feynman}
+        \end{tikzpicture}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.33\textwidth}
+        \centering
+        \begin{tikzpicture}
+            \begin{feynman}
+                \vertex [label={[xshift=-3mm]left:{-1}}](a);
+                \vertex [above left =of a] (i1) {$1$};
+                \vertex [below left =of a] (i2) {$2$};
+                \vertex (b) [right =of a]{-2};
+                \vertex [above right =of b] (f1) {$3$};
+                \vertex [right =of b] (f2) {$4$};
+                \vertex [below right =of b] (f3) {$5$};
+
+                \diagram* {
+                    (i1) -- [gluon] (a) -- [gluon] (i2);
+                    (a) -- [gluon] (b);
+                    (b) -- [gluon] (f1);
+                    (b) -- [gluon] (f2);
+                    (b) -- [gluon] (f3);
+                };
+            \end{feynman}
+        \end{tikzpicture}
+    \end{subfigure}
+    \caption{Example of a Feynman diagram for gluon scattering with 3, 4, and 5 external legs.
+    On the left, the diagram with 3 external legs is the skeleton from which the other diagrams are built.}
+    \label{fig:econding}
+\end{figure}
+
+To generate the Feynman diagrams, we use a recursive function that starts with an initial diagram and progressively adds vertices. 
+First, 3-point vertices are introduced at each internal line, and then 4-point vertices are added at each 3-point vertex. 
+The number of 3-point vertices is determined by tallying how many times a negative number appears in the list, with each negative number 
+appearing at most 4 times.
+
+The next step is to assign momenta to the external and internal lines.
+For a generic diagram with $N$ external lines, $P$ internal lines , $L$ loops and $V_3,V_4$ the number of 3 and 4 point vertices respectively,
+the number of loops is equal to the number of independent momenta:
+
+\begin{equation}
+    L = P - V_3 -V_4 + 1
+\end{equation}
+
+in tree-level diagrams $L=0$, so that we have $V_3 + V_4 = P + 1 $. Imposing momentum conservation at each vertex provides $P+1$ equations.
+However, there are only $P$ unknowns, meaning the system is underdetermined. To solve this, we must include the constraint of global momentum conservation, 
+which removes one of the equations, since  momentum conservation in each vertex imply the global momentum consevation.
+All the previous steps are implemented in the function \texttt{GenerateDiagrams} in \cref{lst:generate-diagrams}.
+
+% inserzione3[grafo_](* Takes a graph and generates a list of graphs obtained by splitting each line into 3 *)
+% inserisci3[pos_, ext_, int_, grafo_] (* Takes a line (pos) and splits it into 3 lines by replacing a line in the graph with 3 lines *)
+% inserzione4[grafo_] (* Adds a 4-point vertex to the graph by inserting new points and lines based on the graph's vertices *)
+% inserisci4[vertice_, ext_, grafo_] (* Adds a new line from a vertex to an external point if the vertex is a 3-point vertex *)
+% generagrafi[n_] (* Generates graphs from a skeleton graph by iterating n times, using both inserzione3 and inserzione4 functions *)
+% generagrafi3[n_] (* Generates graphs from a skeleton graph by only using inserzione3 to split the lines into 3 *)
+% listaimpulsi[grafo_] (* Applies the function p to each element in the graph (probably generating momenta or other characteristics) *)
+% generaequazioni[grafo_] (* Generates equations based on momentum conservation and vertex equations for a given graph *)
+
+\begin{lstlisting}[language=Mathematica,caption = {Generating Feynman diagrams}, label = {lst:generate-diagrams}]
+    Diagrams[graph_] (* Generates diagrams from a graph, calculating internal momenta and Lorentz and color indices for the vertices and propagators *)
+    generatediagrams[n_] (* Generates diagrams with n external points and only 3 and 4-point vertices *)
+    generatediagrams3[n_] (* Generates diagrams with n external points and only 3-point vertices *)
+\end{lstlisting}
+
+To complete the Feynman diagrams, we need to include propagators and vertices, each with momenta, color, and Lorentz indices \cref{fig:lorentz encoding}. 
+We can achieve this by using Mathematica's list manipulation and pattern matching capabilities, constructing vertices and propagators as functions that take momentum, Lorentz indices, and color indices as arguments \cref{lst:prop-vertex}. 
+These functions will be used later to apply the Feynman rules.
+
+\begin{lstlisting}[language=Mathematica,caption = {Feynman propagator and vertex}, label = {lst:prop-vertex}]
+    Prop[p_, {mu1_, mu2_}, {c1_, c2_}]
+    V[i_][{p1_, p2_, p3_}, {mu1_, mu2_, mu3_}, {c1_, c2_, c3_}]
+    V[i_][{p1_, p2_, p3_, p4_}, {mu1_, mu2_, mu3_, mu4_}, {c1_, c2_, c3_, c4_}]
+\end{lstlisting}
+
+where $p$ is the momentum, $\mu_i$ are the Lorentz indices and $c_i$ are the color indices with the convention \cref{fig:lorentz encoding}. 
+We later use these functions to apply the Feynman rules by substituting these functions with the corresponding expressions.
+
+\begin{figure}[htb]
+    \centering
+    \begin{subfigure}[b]{0.33\textwidth}
+        \centering
+        \begin{tikzpicture}
+            \begin{feynman}
+                \vertex (a);
+                \vertex [above left =of a] (i1) {$\mu_1$};
+                \vertex [below left =of a] (i2) {$\mu_2$};
+                \vertex [right =of a] (f1) {$\mu_3$};
+
+                \diagram* {
+                    (i1) -- [gluon] (a) -- [gluon] (i2);
+                    (a) -- [gluon] (f1);
+                };
+            \end{feynman}
+        \end{tikzpicture}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.33\textwidth}
+        \centering
+        \begin{tikzpicture}
+            \begin{feynman}
+                \vertex [label={[xshift=-3mm]left:\small \(\mu_{-2,-1}\)}] (a);
+                \vertex [above left =of a] (i1) {$\mu_1$};
+                \vertex [below left =of a] (i2) {$\mu_2$};
+                \vertex [label={[xshift=3mm]right:\small \(\mu_{-1,-2}\)}] (b) [right=of a];
+                \vertex [above right =of b] (f1) {$\mu_3$};
+                \vertex [below right =of b] (f2) {$\mu_4$};
+
+                \diagram* {
+                    (i1) -- [gluon] (a) -- [gluon] (i2);
+                    (a) -- [gluon] (b);
+                    (f2) -- [gluon] (b)--[gluon] (f1);
+                };
+            \end{feynman}
+        \end{tikzpicture}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.33\textwidth}
+        \centering
+        \begin{tikzpicture}
+            \begin{feynman}
+                \vertex [label={[xshift=-3mm]left:\small \(\mu_{-2,-1}\)}] (a);
+                \vertex [above left =of a] (i1) {$\mu_1$};
+                \vertex [below left =of a] (i2) {$\mu_2$};
+                \vertex (b) [right =of a]{{$\mu_{-1,-2}$}};
+                \vertex [above right =of b] (f1) {$\mu_3$};
+                \vertex [right =of b] (f2) {$\mu_4$};
+                \vertex [below right =of b] (f3) {$\mu_5$};
+
+                \diagram* {
+                    (i1) -- [gluon] (a) -- [gluon] (i2);
+                    (a) -- [gluon] (b);
+                    (b) -- [gluon] (f1);
+                    (b) -- [gluon] (f2);
+                    (b) -- [gluon] (f3);
+                };
+            \end{feynman}
+        \end{tikzpicture}
+    \end{subfigure}
+    \caption{Each external leg is assigned a Lorentz index $\mu_i$ and each vertex $j$ a Lorentz indices $\mu_{i,j}$. The same logic is applied for the color indices.} .
+    \label{fig:lorentz encoding}
+\end{figure}
+
+\subsection{Feynman Rules}
+
+The QCD Feynman rules are implemented in Mathematica as follows:
+
+\begin{lstlisting}[language=Mathematica,caption = {Feynman rules for QCD}, label = {lst:feynman-rules}]
+    gluon = prop[p_, {mu1_, mu2_}, {c1_,c2_}] :> -I myDelta[c1, c2] gprop[p, mu1, mu2];
+    propagator[p_, mu1_, mu2_] := SP[{mu1}, {mu2}]/SP[p, p]
+    V3QCD = V[i_][{p1_, p2_, p3_}, {mu1_, mu2_, mu3_}, {c1_, c2_, c3_}] :> -g f[c1, c2, c3] V3Lorentz[{p1, p2, p3}, {mu1, mu2, mu3}]
+    V3p[{p1_, p2_, p3_}, {mu1_, mu2_, mu3_}] := SP[p1 - p2, {mu3}] SP[{mu1}, {mu2}] + SP[p2 - p3, {mu1}] SP[{mu2}, {mu3}] + SP[p3 - p1, {mu2}] SP[{mu3}, {mu1}]
+    V4QCD = V[i_][{p1_, p2_, p3_, p4_}, {mu1_, mu2_, mu3_, mu4_}, {c1_, c2_, c3_, c4_}] :> -I g^2 
+            (f[c1, c2, c[x, i]] f[c3, c4, c[x, i]] (SP[{mu1}, {mu3}] SP[{mu2}, {mu4}] - SP[{mu1}, {mu4}] SP[{mu2}, {mu3}]) 
+            - f[c1, c3, c[x, i]] f[c2, c4, c[x, i]] (SP[{mu1}, {mu4}] SP[{mu2}, {mu3}] - SP[{mu1}, {mu2}] SP[{mu3}, {mu4}]) 
+            + f[c1, c4, c[x, i]] f[c2, c3, c[x, i]] (SP[{mu1}, {mu2}] SP[{mu3}, {mu4}] - SP[{mu1}, {mu3}] SP[{mu2}, {mu4}]))
+    SetAttributes[myDelta, Orderless]
+    ColorDelta = # //. {myDelta[a_, b_] myDelta[a_, b_] :> (Nc^2 - 1) ,
+        myDelta[a_, a_] :> (Nc^2 - 1),
+        myDelta[a_, b_]*expr_ :> (expr /. b -> a),
+        c[i_, j_] :> a[i,j]} &
+    FeynmanRules = (# /. gluon /. V3QCD /. V4QCD /.gprop -> propagator /. V3Lorentz -> V3p // ColorDelta // antisymf // Expand) &
+\end{lstlisting}
+
+where Lorentz structure and color structure are factorized when possible so we can manipulate them separately.
+This property is especially useful for generating all the distinct products of structure constants \( f^{abc} \) for a given number of external legs. 
+The Feynman rules are applied to the Feynman diagrams using the \texttt{Replace} function, which substitutes the propagators and vertices with their corresponding expressions.
+
+\subsection{Color Algebra and Lorentz}
+
+The color algebra is handled using the following functions:
+
+\begin{itemize}
+    \item \textbf{antisymf}: This functions applies the antisymmetry property of the structure constants $f^{abc}$, 
+    and brings the color indices in decreasing alfanumeric order.
+    \item \textbf{frule}: This functions acts on products of structure constants, it counts the number of repeated indices and 
+    substitute them with $a[i]$. For $n \ge 5$ there are more than one repeated indices and the degeneracy associated with the permutation
+    of the dummy indices must be taken into account.
+    \item \textbf{Color}: This function acts on fully contracted products of structure constants and it calculates the results in terms
+    of $N_c$, the dimensions of the fundamental representation of the $SU(3)$ group. This function converts the products
+    of structure constants into its fundamental representation, using the following identity:
+    \begin{equation}
+        f^{abc} = -2 i Tr \left( [T^a ,T^b] T^c \right)
+    \end{equation}
+    where $T^a$ are the generators of the $SU(3)$ group in the fundamental representation.
+    The trace is expressed as a product of matrices with cyclic indices, and the the Fierz identity is utilized to convert the product of 
+    $T^a$ into a product of Kronecker deltas:
+    \begin{equation}
+        T^a_{i,j} T^b_{k,l} = \frac{1}{2} \left( \delta_{i, l} \delta_{j, k} - \frac{1}{N_c} \delta_{i, j} \delta_{k, l} \right)
+    \end{equation} 
+    This conversion allows us to express the color algebra in terms of Kronecker deltas, which can be manipulated in Mathematica.
+    
+    However this algorithm is not highly efficient. Before all the Kronecker deltas are contracted, the number of terms grows exponentially.
+    For 6 fully contracted structure constants, using the fundamental representation, we have $2^6$ products of $6$ traces each, writing
+    the traces as products of matrices we get $3*6$ matrices, and using Fierz it becomes $2^{6*3}$ terms, in total 
+    we have $2^{6*3+6}$ Kronecker deltas to contract. This whole process takes half a second to be computed.
+\end{itemize}
+
+while Lorentz algebra using the \texttt{SP} function, which is a wrapper for the \texttt{Dot} function. This 
+function is used to contract Lorentz indices and it is defined as follows:
+
+\begin{lstlisting}[language=Mathematica,caption = {Lorentz algebra}, label = {lst:lorentz-algebra}]
+    SetAttributes[SP, Orderless]
+    Contract = (# //. {
+      SP[a_, {mu_}] SP[b_, {mu_}] :> SP[a, b], (*Contraction*)
+      SP[p_, {mu_}] SP[p_, {mu_}] :> SP[p, p],(*Square*)
+      SP[a_Integer *p_, {mu_}] :> a SP[p, {mu}],(*Homogeneity*)
+      SP[a_Integer *p_, q_] :> a SP[p, q], (*Homogeneity'*)
+      SP[p_ + q_, {mu_}] :> SP[p, {mu}] + SP[q, {mu}] ,(*Linearity*)
+      SP[a_, b_ + c_] :> (SP[a, b] + SP[a, c]),(*Distributive property'*)
+      SP[{mu_}, {mu_}] :> 4 (*Trace*),
+      SP[n, n] :> 0 (*Light Cone Gauge*),
+       SP[p[i_], p[i_]] :> 0 (*On Shell Condition*)
+      }) &;
+\end{lstlisting}
+
+
+\end{document}

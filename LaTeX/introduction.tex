@@ -1,0 +1,57 @@
+\documentclass[main.tex]{subfiles}
+\begin{document}
+
+\section{Introduction}
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+Quantum Chromodynamics (QCD), the fundamental theory of the strong interaction, describes the behavior of quarks and gluons. 
+Understanding high-energy collider phenomena, such as jet production, necessitates the precise calculation of scattering amplitudes 
+involving these fundamental particles. 
+
+While the theoretical framework for computing these amplitudes using Feynman diagrams is well-established, 
+the practical execution of these calculations quickly becomes an arduous and error-prone task due to the rapidly increasing number of diagrams, 
+the complexity of algebraic expressions, and the intricate handling of momentum, color, and Lorentz indices.
+
+For gluon scattering in QCD, the number of tree-level Feynman diagrams grows more than factorially with the number of external legs $n+1$, 
+following an asymptotic growth pattern given by:
+
+\begin{equation}
+    \order{\left(\frac{9 \sqrt{3}+12}{11} \right)^n \frac{n!}{n^{3/2}}}   
+\end{equation}
+
+For instance, the number of tree-level diagrams for the first few $n+1$ gluons can be computed using a recurrence relation \cref{lst:tree-diagrams} 
+or counted directly after generating the diagrams in Mathematica in the following section.
+
+\begin{lstlisting}[language=Mathematica,caption = {Number of tree-level diagrams for $n+1$ gluons}, label = {lst:tree-diagrams}]
+    a[0] = 0; a[1] = 1; a[2] = 1;
+    a[n_] := a[n_]:=a[n]=(12(2n-3)a[n-1]+(3n-5)(3n-7)a[n-2])/11;
+    Table[a[n], {n, 3, 12}];
+    Output: {4, 25, 220, 2485, 34300, 559405, 10525900, 224449225, 5348843500, 140880765025}
+\end{lstlisting}
+
+This increasing complexity, particularly in perturbative QCD, makes a computational approach essential.
+For this project, Mathematica \cite{Mathematica} was selected as the primary computational environment due to its unparalleled symbolic manipulation capabilities, which are uniquely well-suited 
+for the challenges of calculating Feynman amplitudes. Unlike compiled languages such as C++ or Fortran, which excel in numerical computations and low-level 
+control, Mathematica provides a high-level, interactive environment that natively understands and operates on symbolic expressions.
+
+% Consider the task of applying Feynman rules: a C++ implementation would require the manual definition and manipulation of complex algebraic structures, 
+% potentially involving custom-built tensor classes, symbolic differentiation, and intricate expression simplification algorithms. This demands significant 
+% upfront development time for a robust symbolic engine, an endeavor that often constitutes a research project in itself. In contrast, Mathematica offers 
+% these functionalities out-of-the-box. Its ability to perform automatic algebraic simplification, handle multi-indexed tensors, solve systems of symbolic 
+% equations (e.g., for momentum conservation), and perform symbolic differentiation and integration provides a powerful toolkit that directly maps to the 
+% requirements of amplitude calculation. This allows us to focus more on implementing the physics rules and explore symmetry relations rather than building
+% the underlying symbolic infrastructure from scratch.
+
+This report details the computational implementation of gluon amplitude calculations in QCD using Mathematica. 
+We will demonstrate how Mathematica's unique strengths in symbolic computation, automated algebraic simplification, and high-level programming facilitate 
+the systematic construction of Feynman diagrams, the automated assignment of momenta, the application of Feynman rules, and ultimately, the derivation of 
+explicit amplitude expressions and modulus squared.
+
+The subsequent sections will walk through the design of our data structures, the algorithms for momentum assignment and 
+constraint solving, the implementation of Feynman rules as substitution rules, color algebra handling, verification
+of key properties such as Ward identities, and the final evaluation of scattering amplitudes.
+
+
+
+\end{document}

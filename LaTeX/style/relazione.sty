@@ -1,0 +1,80 @@
+\ProvidesPackage{style/relazione}
+
+% Page layout
+% Margins
+\usepackage[
+	top=2.1cm, % Top margin
+	bottom=2.1cm, % Bottom margin
+	left=1.8cm, % Left margin
+	right=1.8cm, % Right margin
+	footskip=1cm, % Space from the bottom margin to the baseline of the footer
+	headsep=0.75cm, % Space from the top margin to the baseline of the header
+	columnsep=20pt, % Space between text columns (in twocolumn mode)
+	%showframe % Uncomment to show frames around the margins for debugging
+]{geometry}
+
+\usepackage{fancyhdr}   % Customizing header/footer
+\usepackage{titlesec}   % Customizing section and subsection titles
+\usepackage{setspace}   % For line spacing control
+\usepackage{etoolbox}
+\patchcmd{\abstract}{\normalsize}{\Large}{}{}
+% Line spacing (1.5x spacing)
+\onehalfspacing
+
+\pagestyle{fancy} \fancyhf{} % Clear default style
+\renewcommand{\headrulewidth}{0pt}
+% \setlength{\footnotemargin}{6pt} % Footnote space
+\fancyhead[L]{\textit{Computational Physics Laboratory}}
+\fancyhead[C]{\textit{Gluon Scattering Amplitudes in Mathematica}} 
+\fancyhead[R]{\textit{AY 2024/25}}
+\fancyfoot[R]{\thepage}
+
+% Title formatting
+\titleformat{\section}[block]{\normalfont\bfseries\Large}{\thesection}{1em}{}
+\titleformat{\subsection}[runin]{\normalfont\bfseries\large}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}[runin]{\normalfont\itshape\small}{\thesubsubsection}{1em}{}
+
+% Section numbering
+% \setcounter{secnumdepth}{0} % Allow sections, subsections, and subsubsections to be numbered
+
+% Equation numbering
+% \numberwithin{equation}{section}
+
+% Define the title
+\title{\bfseries Computational Physics Laboratory: \\
+Tree-Level Gluon-Only Amplitudes in Mathematica}
+\author{Jiahao Miao}
+\date{\today}
+
+
+% Title page formatting
+\renewcommand{\maketitle}{
+  \begin{titlepage}
+    \centering
+    {\Large \bfseries Computational Physics Laboratory: \\
+    Tree-Level Gluon Scattering Amplitudes in Mathematica\par}
+    \vspace{1.5cm}
+    {\large Jiahao Miao \par}
+    {\large AY 2024/25 \par}
+    \vspace{1cm}
+    {\Large \myabstract\par}
+  \end{titlepage}
+}
+
+
+% Header for Sections
+\newcommand{\sectionheader}[1]{\noindent\textbf{\large #1}\vspace{0.3cm}}
+
+% Spacing around figures
+\setlength{\textfloatsep}{20pt plus 2pt minus 4pt} % More control over figure placement
+
+% % Custom font settings
+% \renewcommand{\rmdefault}{ptm} % Times New Roman for the main font
+% \renewcommand{\sfdefault}{phv} % Helvetica for sans-serif
+% \renewcommand{\ttdefault}{lmtt} % Monospaced font
+
+% Fancy Title for Appendix
+\newcommand{\appendixTitle}[1]{
+  \section*{Appendix: #1}
+  \addcontentsline{toc}{section}{Appendix: #1}
+}

@@ -1,0 +1,43 @@
+\documentclass[10pt,english]{article}
+
+\usepackage{style/packages}
+\usepackage{style/relazione}
+
+\addbibresource{bibliography.bib} % The file containing the bibliography
+
+\newcommand{\myabstract}{
+    \begin{abstract}
+    This report explores the use of the Mathematica software package to compute tree-level gluon scattering amplitudes in perturbative quantum chromodynamics (QCD),
+    leveraging its powerful algebraic capabilities.
+    The main focus is on utilizing Mathematica's list manipulation functions to represent Feynman diagrams, applying Feynman rules to evaluate the corresponding scattering amplitudes. 
+    Emphasis is placed on the computational techniques used to automate and simplify these calculations, including the verification of key properties such as Ward identities and 
+    symmetry under the exchange of external legs. 
+    The report highlights the efficiency of Mathematica in handling complex algebraic expressions and streamlining the process of evaluating quantum field theory amplitudes.  
+    \end{abstract}
+}    
+
+\begin{document}
+
+
+\maketitle
+
+\begin{abstract}
+    
+\end{abstract}
+\tableofcontents
+\newpage
+
+
+\subfile{introduction}
+
+\subfile{implementation}
+
+\subfile{calculations}
+
+
+
+% bibliography 
+\printbibliography
+
+\end{document}
+
