@@ -118,8 +118,108 @@ These independent color substructures are each accompanied by their respective L
 
 Thanks to the symmetry under exchange, it is sufficient to verify the Ward identity for just one of these independent color substructures.
 
-When a Lorentz substructure is entirely contracted with all external momenta, it vanishes with a \textbf{Simplify} after contraction. 
-However, when contracted with the external polarization vectors, it also needs momentum conservation and transverse polarization $p_i\cdot \epsilon_i = 0$.
+Necessary conditions for the Ward identity are momentum conservation and the transversality of the polarization vectors.
+
+All the steps above are implemented in the module \texttt{VerifyWard[ngluons]}, in \cref{tab:ward-identity-verification} we summarize the performance of the verification of the Ward identity for $n=4,5,6$ gluons.
+Notice that times and memory usage scales exponentially with the number of gluons and simplification times depends on the size of the expressions,
+
+\begin{table}[htbp]
+    \centering
+    \caption{Performance Metrics for Ward Identity Verification in Gluon Scattering}
+    \label{tab:ward-identity-verification}
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        \textbf{Contracted  with} & \textbf{Contraction Time (s)} & \textbf{Memory (MB)} & \textbf{Simplification Time (s)} \\
+        \hline
+        \multicolumn{4}{|c|}{\textbf{$n=4$ Gluons}} \\
+        \hline
+        4p 0$\epsilon$ & 0.0023 & 0.00002 & 0.00008 \\
+        3p 1$\epsilon$ & 0.0038 & 0.00350 & 0.00008 \\
+        2p 2$\epsilon$ & 0.0069 & 0.02103 & 0.00016 \\
+        1p 3$\epsilon$ & 0.0099 & 0.04923 & 0.00020 \\
+        \hline
+        \multicolumn{4}{|c|}{\textbf{$n=5$ Gluons}} \\
+        \hline
+        5p 0$\epsilon$ & 0.093 & 0.077 & 0.00034 \\ 
+        4p 1$\epsilon$ & 0.134 & 0.162 & 0.00062 \\
+        3p 2$\epsilon$ & 0.203 & 0.515 & 0.00160 \\
+        2p 3$\epsilon$ & 0.281 & 0.952 & 0.00327 \\
+        1p 4$\epsilon$ & 0.376 & 1.561 & 0.07672 \\
+        \hline
+        \multicolumn{4}{|c|}{\textbf{$n=6$ Gluons}} \\
+        \hline
+        6p 0$\epsilon$ & 4.04 & 2.67 & 0.23 \\
+        5p 1$\epsilon$ & 5.08 & 4.52 & 0.79 \\
+        4p 2$\epsilon$ & 7.03 & 11.48 & 9.23 \\
+        3p 3$\epsilon$ & 9.64 & 22.11 & 30.04 \\
+        2p 4$\epsilon$ & 12.59 & 37.03 & 151.34 \\
+        1p 5$\epsilon$ & 15.70 & 54.53 & 183.86 \\
+        \hline
+    \end{tabular}
+    \caption*{* The "Memory" column indicates the memory (in Megabytes) required to store the expression just before the simplification step. 
+    The "Contraction Time" includes applying momentum conservation, the transverse condition, and contractions. The "Simplification Time" reflects the duration of the \texttt{Simplify} operation.}
+\end{table}
+
+\section{Modulus Squared of the Amplitude}
+
+Calculating the modulus squared of the amplitude is typically the most computationally intensive step in scattering amplitude computations. 
+For gluon scattering, various strategies can be employed to manage this complexity, primarily by organizing the amplitude and its color 
+substructures differently.
+
+\begin{enumerate}
+    \item \textbf{Direct Squaring of Feynman Diagrams:} This is the most straightforward method, involving the direct squaring of the sum of all Feynman diagrams.
+
+    \item \textbf{Collecting Non-Independent Color Substructures:} A more efficient approach involves collecting all $(2n-5)!!$ non-independent color substructures before squaring their sum. 
+    This strategy significantly improves efficiency by allowing for early cancellations, thereby substantially reducing the size of intermediate expressions and overall memory footprint.
+
+    \item \textbf{Utilizing Jacobi Identities for Independent Color Substructures:} This method further reduces the number of color substructures to $(n-2)!$ by employing Jacobi identities to derive a basis of independent color structures. 
+    While this approach minimizes the number of terms that need to be computed, it can lead to coefficients with larger individual expressions. This presents a trade-off between the number of calculations performed and the symbolic size of the resulting terms.
+\end{enumerate}
+
+To illustrate the computational characteristics of these approaches, Table \ref{tab:modulus-squared-performance} presents performance metrics,
+including memory usage and computation time, for $n=4$ and $n=5$ gluon scattering processes.
+The memory usage is detailed for various stages of the calculation: the size of a single selected term, its size after contraction with polarization sums (using specific choices for polarization vectors $n^{\mu}$ aligned with external momenta for simplification),
+the size after expanding against a conjugate term, the size after subsequent contraction, after renaming Lorentz invariants, and finally, after full simplification. Lastly,
+the total time taken to compute the modulus squared is also recorded.
+
+\begin{table}[h!]
+    \centering
+    \caption{Performance Metrics for Modulus Squared Calculation in Gluon Scattering}
+    \label{tab:modulus-squared-performance}
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        \textbf{Operation Stage} & \textbf{Feynman Diagrams} & \textbf{Non-Independent Basis} & \textbf{Independent Basis} \\
+        \hline
+        \multicolumn{4}{|c|}{\textbf{$n=4$ Gluons}} \\
+        \hline
+        Total Terms & 10 & 6 & 3 \\
+        Single Term (MB) & 0.028 & 0.025 & 0.050 \\
+        Times Polarization (MB) & 0.945 & 0.693 & 1.512 \\
+        Times Conjugate (MB) & 15.449 & 4.186 & 32.592 \\
+        Contract (MB) & 1.364 & 0.358 & 2.220 \\
+        Mandelstam (MB) & 0.389 & 0.116 & 0.622\\
+        Simplify (MB) & 0.005 & 0.003 & 0.006\\
+        All Contributions (MB) & 0.026 & 0.023 & 0.018 \\
+        Time Taken (s) & 3.318 & 1.106 & 3.184 \\
+        \hline
+        \multicolumn{4}{|c|}{\textbf{$n=5$ Gluons}} \\
+        \hline
+        Total Terms & 325 & 120 & 21 \\
+        Single Term (MB) & 0.134 & 0.133 & 0.633 \\
+        Times Polarization (MB) & 10.455 & 8.970 & 56.295 \\
+        Times Conjugate (MB) & 4893.640 & 3695.500 & TBD \\
+        Contract (MB) & 6.325 & 1.553 & TBD \\
+        Mandelstam (MB) & 7.760 & 1.681 & TBD \\
+        Simplify (MB) & 0.072 & 0.059 & TBD \\
+        All Contributions (MB) & TBD & 6.867 & TBD \\
+        Time Taken (min) & TBD & $\sim$50 & TBD \\
+        \hline
+    \end{tabular}
+    \caption*{Note: the most memory-intensive operation is the expansion against a conjugate term, which is necessary for Contraction to act on the expression.}
+\end{table}
+
+The correctness of the modulus squared calculation has been verified by comparing with the results in \cite{Ellis:1996mzs,BERENDS1981124}.
+
 
 
 \end{document}

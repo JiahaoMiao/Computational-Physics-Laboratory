@@ -115,17 +115,7 @@ All the previous steps are implemented in the function \texttt{GenerateDiagrams}
 \end{lstlisting}
 
 To complete the Feynman diagrams, we need to include propagators and vertices, each with momenta, color, and Lorentz indices \cref{fig:lorentz encoding}. 
-We can achieve this by using Mathematica's list manipulation and pattern matching capabilities, constructing vertices and propagators as functions that take momentum, Lorentz indices, and color indices as arguments \cref{lst:prop-vertex}. 
-These functions will be used later to apply the Feynman rules.
-
-\begin{lstlisting}[language=Mathematica,caption = {Feynman propagator and vertex}, label = {lst:prop-vertex}]
-    Prop[p_, {mu1_, mu2_}, {c1_, c2_}]
-    V[i_][{p1_, p2_, p3_}, {mu1_, mu2_, mu3_}, {c1_, c2_, c3_}]
-    V[i_][{p1_, p2_, p3_, p4_}, {mu1_, mu2_, mu3_, mu4_}, {c1_, c2_, c3_, c4_}]
-\end{lstlisting}
-
-where $p$ is the momentum, $\mu_i$ are the Lorentz indices and $c_i$ are the color indices with the convention \cref{fig:lorentz encoding}. 
-We later use these functions to apply the Feynman rules by substituting these functions with the corresponding expressions.
+We can achieve this by using Mathematica's list manipulation and pattern matching capabilities, constructing vertices and propagators as functions that take momentum, Lorentz indices, and color indices as arguments. 
 
 \begin{figure}[htb]
     \centering
@@ -242,26 +232,39 @@ The color algebra is handled using the following functions:
     This conversion allows us to express the color algebra in terms of Kronecker deltas, which can be manipulated in Mathematica.
     
     However this algorithm is not highly efficient. Before all the Kronecker deltas are contracted, the number of terms grows exponentially.
-    For 6 fully contracted structure constants, using the fundamental representation, we have $2^6$ products of $6$ traces each, writing
-    the traces as products of matrices we get $3*6$ matrices, and using Fierz it becomes $2^{6*3}$ terms, in total 
-    we have $2^{6*3+6}$ Kronecker deltas to contract. This whole process takes half a second to be computed.
+    For $n$ gluons, there are $2(n-2)$ fully contracted structure constants, converting to traces gives $2^{2(n-2)}$ products of $2(n-2)$ traces each, writing
+    the traces as products of matrices we get $3*2(n-2)$ matrices, and using Fierz it becomes $2^{2(n-2)*3}$ terms, in total 
+    we have $2^{2(n-2)*3+2(n-2)}= 2^{8(n-2)}$ Kronecker deltas to contract, making it a very inefficient algorithm see \cref{tab:color-algebra}. It is possible to reduce
+    the number of terms by using known identities before applying the Fierz identity, for example: $ Tr(T^aT^a) = Nc^2/2$. Further speed up can be obtained by
+    dropping the $-\frac{1}{Nc}$ term in the Fierz identity, since it cancels out in the final result for gluon scattering amplitudes.
 \end{itemize}
 
-while Lorentz algebra using the \texttt{SP} function, which is a wrapper for the \texttt{Dot} function. This 
+\begin{table}
+    \centering
+    \caption{Testing Color for various cases}
+    \label{tab:color-algebra}
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        \textbf{n} & \textbf{product} & \textbf{Result} & \textbf{Time (s)} \\
+        \hline
+        4 & $f^{c_3 c_1 a_1} f^{c_3 c_2 b_1} f^{c_4 c_1 b_1} f^{c_4 c_2 a_1}$ &  $\frac{Nc^2}{2}(N_c^2 - 1)$ & 0.0625 \\
+        5 & $f^{c_1 b_2 b_1} f^{c_3 c_2 a_2} f^{c_3 c_2 b_1}f^{c_4 a_2 a_1} f^{c_5 c_1 a_1} f^{c_5 c_4 b_2}$ & $-\frac{Nc^3}{2}(N_c^2 - 1)$ & 0.5868 \\
+        6 & $f^{c_1 a_3 a_1} f^{c_1 b_3 b_1} f^{c_3 c_2 a_1}f^{c_3 c_2 b_1} f^{c_4 b_3 b_2}f^{c_5 a_3 a_2} f^{c_6 c_4 a_2} f^{c_6 c_5 b_2} $ & $\frac{Nc^4}{2}(N_c^2 - 1)$ & 25.6701 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+
+Lorentz algebra is implemented using the \texttt{SP} function, which is a wrapper for the \texttt{Dot} function. This 
 function is used to contract Lorentz indices and it is defined as follows:
 
 \begin{lstlisting}[language=Mathematica,caption = {Lorentz algebra}, label = {lst:lorentz-algebra}]
     SetAttributes[SP, Orderless]
     Contract = (# //. {
-      SP[a_, {mu_}] SP[b_, {mu_}] :> SP[a, b], (*Contraction*)
-      SP[p_, {mu_}] SP[p_, {mu_}] :> SP[p, p],(*Square*)
-      SP[a_Integer *p_, {mu_}] :> a SP[p, {mu}],(*Homogeneity*)
-      SP[a_Integer *p_, q_] :> a SP[p, q], (*Homogeneity'*)
-      SP[p_ + q_, {mu_}] :> SP[p, {mu}] + SP[q, {mu}] ,(*Linearity*)
-      SP[a_, b_ + c_] :> (SP[a, b] + SP[a, c]),(*Distributive property'*)
-      SP[{mu_}, {mu_}] :> 4 (*Trace*),
-      SP[n, n] :> 0 (*Light Cone Gauge*),
-       SP[p[i_], p[i_]] :> 0 (*On Shell Condition*)
+      SP[a_, {mu_}] SP[b_, {mu_}] :> SP[a, b], (*Contraction*) SP[p_, {mu_}] SP[p_, {mu_}] :> SP[p, p],(*Square*)
+      SP[a_Integer *p_, {mu_}] :> a SP[p, {mu}],(*Homogeneity*) SP[a_Integer *p_, q_] :> a SP[p, q], (*Homogeneity*)
+      SP[p_ + q_, {mu_}] :> SP[p, {mu}] + SP[q, {mu}],(*Linearity*) SP[a_, b_ + c_] :> (SP[a, b] + SP[a, c]),(*Distributive property*)
+      SP[{mu_}, {mu_}] :> 4 (*Trace*), SP[n, n] :> 0 (*Light Cone Gauge*), SP[p[i_], p[i_]] :> 0 (*On Shell Condition*)
       }) &;
 \end{lstlisting}
 
