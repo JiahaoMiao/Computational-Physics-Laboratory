@@ -5,7 +5,7 @@
 
 \subsection{Generating Feynman Diagrams}
 
-The first step is to encode the Feynman diagrams in a way that Mathematica can manipulate them \cref{fig:econding}.
+The first step is to encode the Feynman diagrams in a way that Mathematica can manipulate them (\cref{fig:econding}).
 We represent each diagram as a list of pairs, for instance, the third diagram in \cref{fig:econding} can be represented as:
 
 \begin{equation*}
@@ -267,6 +267,5 @@ function is used to contract Lorentz indices and it is defined as follows:
       SP[{mu_}, {mu_}] :> 4 (*Trace*), SP[n, n] :> 0 (*Light Cone Gauge*), SP[p[i_], p[i_]] :> 0 (*On Shell Condition*)
       }) &;
 \end{lstlisting}
-
 
 \end{document}

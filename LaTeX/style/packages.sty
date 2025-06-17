@@ -39,7 +39,7 @@
 \RequirePackage{mathrsfs}               % Script math fonts
 % Integrating Mathematica calculations
 \RequirePackage{listings}              % For including Mathematica code
-\captionsetup[listing]{labelformat=empty}
+\renewcommand{\lstlistingname}{Code} % Change "Listing" to "Code"
 \lstset{language=Mathematica}
 \lstset{
      inputencoding=utf8,
@@ -84,6 +84,8 @@
     urlcolor= blue                % Color of external links
 }
 \RequirePackage{cleveref}                   % Better cross-referencing(after hyperref)
+\crefname{lstlisting}{code}{codes} % Changes how cleveref refers to it
+\Crefname{lstlisting}{Code}{Codes} % Changes how cleveref refers to it in capitalized form
 \RequirePackage{csquotes}               % Quotation management
 \RequirePackage{verbatim}              
 \RequirePackage[backend=biber,style=ieee]{biblatex}               % Bibliography management

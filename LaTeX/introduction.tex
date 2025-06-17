@@ -14,14 +14,14 @@ the practical execution of these calculations quickly becomes an arduous and err
 the complexity of algebraic expressions, and the intricate handling of momentum, color, and Lorentz indices.
 
 For gluon scattering in QCD, the number of tree-level Feynman diagrams grows more than factorially with the number of external legs $n+1$, 
-following an asymptotic growth pattern given by:
+following an asymptotic growth pattern given by (see notebook):
 
 \begin{equation}
     \order{\left(\frac{9 \sqrt{3}+12}{11} \right)^n \frac{n!}{n^{3/2}}}   
 \end{equation}
 
-For instance, the number of tree-level diagrams for the first few $n+1$ gluons can be computed using a recurrence relation \cref{lst:tree-diagrams} 
-or counted directly after generating the diagrams in Mathematica in the following section.
+For instance, the number of tree-level diagrams for the first few $n+1$ gluons can be computed using a recurrence relation (\Cref{lst:tree-diagrams}) 
+or counted directly after generating the diagrams in Mathematica.
 
 \begin{lstlisting}[language=Mathematica,caption = {Number of tree-level diagrams for $n+1$ gluons}, label = {lst:tree-diagrams}]
     a[0] = 0; a[1] = 1; a[2] = 1;
@@ -50,8 +50,9 @@ explicit amplitude expressions and modulus squared.
 
 The subsequent sections will walk through the design of our data structures, the algorithms for momentum assignment and 
 constraint solving, the implementation of Feynman rules as substitution rules, color algebra handling, verification
-of key properties such as Ward identities, and the final evaluation of scattering amplitudes.
+of key properties such as Ward identities, and computation of the modulus squared.
 
+All the code used in this report were run in a laptop with AMD Ryzen 7 5800H CPU and 16 GB RAM.
 
 
 \end{document}

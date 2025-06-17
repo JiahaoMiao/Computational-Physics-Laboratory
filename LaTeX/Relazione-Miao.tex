@@ -1,0 +1,46 @@
+\documentclass[10pt,english]{article}
+
+\usepackage{style/packages}
+\usepackage{style/relazione}
+
+\addbibresource{bibliography.bib} % The file containing the bibliography
+
+\newcommand{\myabstract}{
+    \begin{abstract}
+    \normalsize This report explores the use of the Mathematica software package to compute tree-level gluon scattering amplitudes in perturbative quantum chromodynamics (QCD),
+    leveraging its powerful algebraic capabilities.
+    The main focus is on utilizing Mathematica's list manipulation functions to represent Feynman diagrams, applying Feynman rules to evaluate the corresponding scattering amplitudes. 
+    Emphasis is placed on the computational techniques used to automate and simplify these calculations and resources consumed.
+    Key properties such as Ward identities and symmetry under the exchange of external legs are verified to ensure the robustness of the calculations. 
+    While Mathematica proves efficient in handling complex algebraic expressions and streamlining the evaluation of QFT amplitudes, 
+    the report also highlights the exponential growth in computational resource requirements as the number of external legs increases.  
+    \end{abstract}
+}    
+
+\begin{document}
+
+\maketitle
+
+\subfile{introduction}
+
+\subfile{implementation}
+
+\subfile{calculations}
+
+\section{Conclusions}
+
+This report highlights Mathematica's capability in efficiently computing tree-level gluon scattering amplitudes in QCD. 
+We developed a framework that automates the generation of Feynman diagrams and the application of Feynman rules, 
+significantly streamlining the derivation of amplitudes. However, the growth of the number of diagrams is super-exponential, demonstrating 
+that while computational tools are essential, they alone cannot manage the rapidly increasing algebraic complexity.
+
+We validated the framework's robustness by confirming its symmetry under external leg exchange and its consistency with Ward identities, 
+both of which exhibited exponential resource scaling. Ultimately, while Mathematica proves to be a powerful tool for addressing this problem, 
+the exponential complexity inherent in gluon scattering amplitudes necessitates a more sophisticated approach that leverages symmetry to manage 
+the growth effectively
+
+% bibliography 
+\printbibliography
+
+\end{document}
+
