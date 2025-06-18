@@ -1,0 +1,25 @@
+{
+    "latex-workshop.latex.tools": [
+        {
+          "name": "lualatex",
+          "command": "lualatex",
+          "args": [
+            "-synctex=1",
+            "-interaction=nonstopmode",
+            "-file-line-error",
+            "%DOC%"
+          ]
+        }
+      ],
+      "latex-workshop.latex.recipes": [
+        {
+          "name": "lualatex",
+          "tools": [
+            "lualatex"
+          ]
+        }
+      ],
+      "latex-workshop.latex.autoBuild.run": "never",
+      "latex-workshop.latex.outDir": "%DIR%/out",
+      "latex-workshop.latex.autoBuild.cleanAndRetry.enabled": true
+}
